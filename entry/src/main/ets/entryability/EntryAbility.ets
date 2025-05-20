@@ -7,6 +7,7 @@ import abilityAccessCtrl, { Permissions } from '@ohos.abilityAccessCtrl';
 import common from '@ohos.app.ability.common';
 import Log from '../utils/Log';
 import bundleManager from '@ohos.bundle.bundleManager';
+import DeviceManager from '../utils/DeviceManager';
 
 const permissions: Array<Permissions> = ['ohos.permission.DISTRIBUTED_DATASYNC', 'ohos.permission.ACCESS_SERVICE_DM'];
 
@@ -16,6 +17,7 @@ export default class EntryAbility extends UIAbility {
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
+    DeviceManager.createDeviceManager();
   }
 
   onDestroy(): void {

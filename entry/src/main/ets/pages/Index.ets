@@ -1,17 +1,26 @@
-@Entry
+import common from '@ohos.app.ability.common';
+import distributedKVStore from '@ohos.data.distributedKVStore';
+import deviceManager from '@ohos.distributedDeviceManager';
+import DeviceManager from '../utils/DeviceManager'
+
+
+let storage = LocalStorage.getShared();
+
+@Entry(storage)
 @Component
 struct Index {
-  @State message: string = 'Hello World';
+  startFindingNearbyDevice(): void {
+    DeviceManager.startDeviceDiscovery()
+  }
 
   build() {
-    Row() {
-      Column() {
-        Text(this.message)
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
-      }
-      .width('100%')
+    Column() {
+      Button('Find nearby Device')
+        .onClick(() => {
+          this.startFindingNearbyDevice()
+        })
     }
+    .width('100%')
     .height('100%')
   }
 }
