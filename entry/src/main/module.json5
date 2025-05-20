@@ -32,6 +32,14 @@
           }
         ]
       }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.ACCESS_SERVICE_DM",
+      },
+      {
+        "name": "ohos.permission.DISTRIBUTED_DATASYNC",
+      }
     ]
   }
 }
