@@ -119,19 +119,26 @@ class DeviceManager {
       return;
     }
 
+    if (this.isDiscovering) {
+      Log.warn('DeviceManager', 'Discovery already in progress, skipping...');
+      return;
+    }
+
     try {
       this.myDeviceManager.startDiscovering(
         {
-          'discoverTargetType': 1
+          discoverTargetType: 1
         },
         {
-          'availableStatus': 1
+          availableStatus: 1,
+          authenticationStatus: 1,
+          authorizationType: 1
         }
       );
       this.isDiscovering = true;
       this.myDeviceManager.on('discoverSuccess', (data) => {
         if (data) {
-          Log.info('DeviceManager', `Device found: ${JSON.stringify(data.device.deviceId)}`);
+          Log.info('DeviceManager', `Device found: ${JSON.stringify(data.device.deviceName)}`);
           this.deviceFound(data.device);
         } else {
           Log.warn('DeviceManager', 'Discovery success, but no device in data');
