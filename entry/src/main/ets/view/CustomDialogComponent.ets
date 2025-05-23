@@ -11,23 +11,28 @@ function ButtonTextStyle() {
 
 @CustomDialog
 export default struct DeviceListDialog {
-  controller?: CustomDialogController;
+  controller?: CustomDialogController
   @Link deviceList: deviceManager.DeviceBasicInfo[]
+  @Link param: string[]
+  @Link connectedDeviceId: string
   @State selectedIndex: number = -1
   @State selectedDeviceName: string = ''
   cancel: () => void = () => {
   }
-  startAbility: (context: common.UIAbilityContext, device: deviceManager.DeviceBasicInfo) => void
+  startAbility: (context: common.UIAbilityContext, device: deviceManager.DeviceBasicInfo, textInput: string[]) => void
     = () => {
   }
 
-  getDeviceName(index: number): string {
+  getDeviceInfo(index: number): string {
     if (this.deviceList.length == 0) {
       promptAction.showToast({
         message: 'No available device!'
       })
       return ''
     }
+
+    this.connectedDeviceId = this.deviceList[index].deviceId
+
     return this.deviceList[index].deviceName
   }
 
@@ -79,7 +84,7 @@ export default struct DeviceListDialog {
               .height(56)
               .onClick(() => {
                 this.selectedIndex = index
-                this.selectedDeviceName = this.getDeviceName(index)
+                this.selectedDeviceName = this.getDeviceInfo(index)
               })
               .padding({
                 left: 24,
@@ -141,7 +146,7 @@ export default struct DeviceListDialog {
             if (this.controller !== undefined) {
               this.controller.close()
             }
-            this.startAbility(getContext(this) as common.UIAbilityContext, this.deviceList[this.selectedIndex])
+            this.startAbility(getContext(this) as common.UIAbilityContext, this.deviceList[this.selectedIndex], this.param)
             promptAction.showToast({
               message: `Device: ${this.selectedDeviceName} connected!`
             })

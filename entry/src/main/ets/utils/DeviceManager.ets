@@ -1,5 +1,7 @@
 import deviceManager from '@ohos.distributedDeviceManager'
 import Log from './Log'
+import common from '@ohos.app.ability.common'
+import Want from '@ohos.app.ability.Want'
 
 class DeviceManager {
   private static instance: DeviceManager | undefined = undefined
@@ -152,6 +154,59 @@ class DeviceManager {
     } catch (err) {
       Log.error('DeviceManager', `startDeviceDiscovery failed: ${JSON.stringify(err)}`);
     }
+  }
+
+  authenticateDevice(
+    context: common.UIAbilityContext,
+    device: deviceManager.DeviceBasicInfo,
+    shared_list: string[]
+  ): void {
+    let tmpList = this.availableDeviceList.filter((item: deviceManager.DeviceBasicInfo) => device.deviceId === item.deviceId);
+    if (tmpList.length > 0) {
+      this.startAbility(context, device, shared_list);
+      return;
+    }
+
+    if (this.myDeviceManager === undefined) {
+      Log.error('RemoteDeviceModel', 'authenticateDevice deviceManager has not initialized');
+      return;
+    }
+
+    let bindParam: Record<string, string | number> = {
+      'bindType': 4,
+      'targetPkgName':  context.abilityInfo.bundleName,
+      'appName': context.abilityInfo.applicationInfo.name,
+    }
+
+    try {
+      this.myDeviceManager.bindTarget(device.deviceId, bindParam, (err) => {
+        if (err) {
+          Log.error('Device Manager',
+            `authenticateDevice error code=${err.code}, msg=${JSON.stringify(err.message)}`);
+          return;
+        }
+      })
+    } catch (error) {
+      Log.error('Device Manager',
+        `authenticateDevice failed error=${JSON.stringify(error)}`);
+    }
+  }
+
+  startAbility(context: common.UIAbilityContext, device: deviceManager.DeviceBasicInfo, shared_list: string[]): void {
+    let wantValue: Want = {
+      bundleName: context.abilityInfo.bundleName,
+      abilityName: 'EntryAbility',
+      deviceId: device.deviceId,
+      parameters: {
+        shared_list: JSON.stringify(shared_list)
+      }
+    };
+
+    context.startAbility(wantValue).then(() => {
+      Log.info('RemoteDeviceModel', `startAbility finished wantValue=${JSON.stringify(wantValue)}`);
+    }).catch((error: Error) => {
+      Log.error('RemoteDeviceModel', `startAbility failed, error=${JSON.stringify(error)}`);
+    })
   }
 
   stopDeviceDiscovery(): void {

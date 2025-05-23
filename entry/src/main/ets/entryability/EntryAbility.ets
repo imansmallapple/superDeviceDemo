@@ -16,18 +16,30 @@ export default class EntryAbility extends UIAbility {
   want?: Want;
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
-    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
-    DeviceManager.createDeviceManager();
+    this.want = want
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate')
+    DeviceManager.createDeviceManager()
   }
 
-  onDestroy(): void {
-    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
+  onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.want = want
+
+    if (this.want?.parameters?.textInput) {
+      let param: string = JSON.parse((this.want.parameters.param) as string)
+      this.storage.setOrCreate('shared_data', param)
+    }
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     // Main window is created, set main page for this ability
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
-    checkPermissions(this.context);
+
+    if (this?.want?.parameters?.textInput) {
+      let shared_data: string = JSON.parse((this.want.parameters.shared_data) as string)
+      this.storage.setOrCreate('shared_data', shared_data)
+    }
+
+    checkPermissions(this.context)
 
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
@@ -36,21 +48,6 @@ export default class EntryAbility extends UIAbility {
       }
       hilog.info(0x0000, 'testTag', 'Succeeded in loading the content.');
     });
-  }
-
-  onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
-  }
-
-  onForeground(): void {
-    // Ability has brought to foreground
-    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onForeground');
-  }
-
-  onBackground(): void {
-    // Ability has back to background
-    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onBackground');
   }
 }
 
