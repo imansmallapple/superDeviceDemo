@@ -14,9 +14,12 @@ export default struct DeviceListDialog {
   controller?: CustomDialogController
   @Link deviceList: deviceManager.DeviceBasicInfo[]
   @Link param: string[]
+  @State toConnectDeviceId: string = ''
   @Link connectedDeviceId: string
   @State selectedIndex: number = -1
   @State selectedDeviceName: string = ''
+  @Link isLoading: boolean
+  @Link isPaired: boolean
   cancel: () => void = () => {
   }
   startAbility: (context: common.UIAbilityContext, device: deviceManager.DeviceBasicInfo, textInput: string[]) => void
@@ -31,7 +34,13 @@ export default struct DeviceListDialog {
       return ''
     }
 
-    this.connectedDeviceId = this.deviceList[index].deviceId
+    if (this.deviceList.length == 0) {
+      this.isLoading = true
+    } else {
+      this.isLoading = false
+    }
+
+    this.toConnectDeviceId = this.deviceList[index].deviceId
 
     return this.deviceList[index].deviceName
   }
@@ -150,6 +159,8 @@ export default struct DeviceListDialog {
             promptAction.showToast({
               message: `Device: ${this.selectedDeviceName} connected!`
             })
+            this.connectedDeviceId = this.toConnectDeviceId
+            this.isPaired = true
           }
         })
       }

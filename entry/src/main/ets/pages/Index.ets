@@ -4,6 +4,7 @@ import deviceManager from '@ohos.distributedDeviceManager'
 import Log from '../utils/Log';
 import common from '@ohos.app.ability.common';
 import KvStoreModel from '../utils/kvStoreUtil';
+import promptAction from '@ohos.promptAction';
 
 let storage = LocalStorage.getShared();
 
@@ -12,9 +13,12 @@ let storage = LocalStorage.getShared();
 struct Index {
   @StorageLink('deviceList') deviceList: deviceManager.DeviceBasicInfo[] = []
   @LocalStorageProp('shared_data') shared_data: string[] = []
-  @State connectDeviceId: string = ''
+  @State connectedDeviceId: string = ''
   @State textInput: string = ''
   @State receivedText: string[] = []
+  @State isLoading: boolean = false
+  @State isAbleUnbind: boolean = false
+  @State isPaired: boolean = false
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
   private kvStoreModel: KvStoreModel = new KvStoreModel();
 
@@ -27,6 +31,10 @@ struct Index {
         }
       })
     })
+    // this.checkAbleUnbind()
+    if (this.connectedDeviceId == '') {
+      this.isPaired = false
+    }
   }
 
   aboutToDisappear(): void {
@@ -39,9 +47,19 @@ struct Index {
       deviceList: this.deviceList,
       cancel: this.onCancel,
       param: this.shared_data,
-      connectedDeviceId: this.connectDeviceId
+      connectedDeviceId: this.connectedDeviceId,
+      isLoading: this.isLoading,
+      isPaired: this.isPaired,
     })
   })
+
+  // checkAbleUnbind() {
+  //   if (this.connectDeviceId !== '') {
+  //     this.isAbleUnbind = true
+  //   } else {
+  //     this.isAbleUnbind = false
+  //   }
+  // }
 
   startFindingNearbyDevice(): void {
     DeviceManager.startDeviceDiscovery()
@@ -52,11 +70,11 @@ struct Index {
   }
 
   pushData(data: string): void {
-    Log.info('ConnectedDeviceId: ', this.connectDeviceId)
+    Log.info('ConnectedDeviceId: ', this.connectedDeviceId)
     Log.info('ConnectedDeviceId data: ', data)
     Log.info('ConnectedDeviceId shared_text: ', JSON.stringify(this.shared_data))
     this.shared_data.push(data)
-    this.kvStoreModel.put('shared_text', JSON.stringify(this.shared_data), this.connectDeviceId)
+    this.kvStoreModel.put('shared_text', JSON.stringify(this.shared_data), this.connectedDeviceId)
   }
 
   startAbility(
@@ -70,11 +88,39 @@ struct Index {
 
   build() {
     Column() {
-      Button('Find nearby Device')
-        .onClick(() => {
-          this.startFindingNearbyDevice()
-          this.dialogController.open()
-        })
+      Row() {
+        Button('Find nearby Device')
+          .onClick(() => {
+            this.startFindingNearbyDevice()
+            this.dialogController.open()
+          })
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.Center)
+
+      Row() {
+        Text(`Paired: ${this.isPaired}`)
+          .alignSelf(ItemAlign.End)
+      }
+      .width('100%')
+      .zIndex(1)
+      .justifyContent(FlexAlign.End)
+
+      if (this.isLoading) {
+        LoadingProgress()
+          .width(50)
+      }
+      if (this.connectedDeviceId !== '') {
+        Button('Unbind')
+          .onClick(() => {
+            DeviceManager.unbindDevice(this.connectedDeviceId)
+            this.connectedDeviceId = ''
+            this.isPaired = false
+            // this.checkAbleUnbind()
+            promptAction.showToast({ message: 'Unbind succeed!' })
+          })
+      }
+      Text('Connected device id: ' + this.connectedDeviceId)
 
       TextInput({ text: this.textInput, placeholder: 'Input your word..' })
         .onChange((value: string) => {
@@ -83,7 +129,7 @@ struct Index {
 
       Button('Send')
         .onClick(() => {
-          if (!this.connectDeviceId || !this.textInput) {
+          if (!this.connectedDeviceId || !this.textInput) {
             Log.info('No device connected or text is empty!')
             return
           }

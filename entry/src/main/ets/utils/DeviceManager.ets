@@ -11,6 +11,7 @@ class DeviceManager {
   private availableDeviceList: deviceManager.DeviceBasicInfo[] = []
   private discoverList: deviceManager.DeviceBasicInfo[] = []
   private isDiscovering: boolean = false
+  private boundDeviceList: string[] = []
 
   static getInstance(): DeviceManager {
     if (!DeviceManager.instance) {
@@ -178,14 +179,35 @@ class DeviceManager {
       this.myDeviceManager.bindTarget(device.deviceId, bindParam, (err: BusinessError) => {
         if (err) {
           Log.error('Device Manager',
-            `authenticateDevice error code=${err.code}, msg=${JSON.stringify(err.message)}`);
+            `authenticateDevice error code=${err.code}, msg=${JSON.stringify(err.message)}`)
           return;
+        } else {
+          Log.info('DeviceManager', 'bindDevice success')
+          this.boundDeviceList.push(device.deviceId);
+          AppStorage.setOrCreate('boundDeviceList', this.boundDeviceList);
         }
       })
     } catch (error) {
       Log.error('Device Manager',
         `authenticateDevice failed error=${JSON.stringify(error)}`);
     }
+  }
+
+  unbindDevice(deviceId: string): void {
+    if (this.myDeviceManager === undefined) {
+      Log.error('RemoteDeviceModel', 'unbindDevice deviceManager has not initialized');
+      return;
+    }
+    try {
+      this.myDeviceManager.unbindTarget(deviceId)
+      Log.info(`Device unbound: ${deviceId}`)
+    } catch (e) {
+      Log.error(`Failed to unbind: ${JSON.stringify(e)}`)
+    }
+  }
+
+  getBoundDeviceList(): string[] {
+    return this.boundDeviceList;
   }
 
   startAbility(context: common.UIAbilityContext, device: deviceManager.DeviceBasicInfo, shared_list: string[]): void {
