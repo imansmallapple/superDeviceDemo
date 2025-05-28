@@ -12,6 +12,7 @@ let storage = LocalStorage.getShared();
 @Component
 struct Index {
   @StorageLink('deviceList') deviceList: deviceManager.DeviceBasicInfo[] = []
+  @StorageLink('RemoteConnectDeviceId') remoteConnectDeviceId: string = ''
   @LocalStorageProp('shared_data') shared_data: string[] = []
   @State connectedDeviceId: string = ''
   @State textInput: string = ''
@@ -121,6 +122,7 @@ struct Index {
           })
       }
       Text('Connected device id: ' + this.connectedDeviceId)
+      Text('Connected device from sender(For receiver device): ' + this.remoteConnectDeviceId)
 
       TextInput({ text: this.textInput, placeholder: 'Input your word..' })
         .onChange((value: string) => {

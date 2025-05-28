@@ -4,6 +4,8 @@ import common from '@ohos.app.ability.common'
 import Want from '@ohos.app.ability.Want'
 import { BusinessError } from '@ohos.base'
 
+// todo: Check if current device is sender or receiver
+
 class DeviceManager {
   private static instance: DeviceManager | undefined = undefined
   private myDeviceManager?: deviceManager.DeviceManager
@@ -50,6 +52,9 @@ class DeviceManager {
 
         switch (data.action) {
           case deviceManager.DeviceStateChange.AVAILABLE:
+            const remoteDevice = data.device
+            AppStorage.setOrCreate('RemoteConnectDeviceId', remoteDevice.deviceId)
+            Log.info('deviceStateChange', 'Paired by device: ' + remoteDevice.deviceName)
             this.deviceOnline(data.device);
             break;
           case deviceManager.DeviceStateChange.UNAVAILABLE:
