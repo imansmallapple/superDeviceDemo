@@ -2,6 +2,7 @@ import deviceManager from '@ohos.distributedDeviceManager'
 import Log from './Log'
 import common from '@ohos.app.ability.common'
 import Want from '@ohos.app.ability.Want'
+import { BusinessError } from '@ohos.base'
 
 class DeviceManager {
   private static instance: DeviceManager | undefined = undefined
@@ -121,20 +122,15 @@ class DeviceManager {
       return;
     }
 
-    if (this.isDiscovering) {
-      Log.warn('DeviceManager', 'Discovery already in progress, skipping...');
-      return;
-    }
-
     try {
+      this.stopDeviceDiscovery()
+
       this.myDeviceManager.startDiscovering(
         {
           discoverTargetType: 1
         },
         {
-          availableStatus: 1,
-          authenticationStatus: 1,
-          authorizationType: 1
+          availableStatus: 0,
         }
       );
       this.isDiscovering = true;
@@ -173,13 +169,13 @@ class DeviceManager {
     }
 
     let bindParam: Record<string, string | number> = {
-      'bindType': 4,
-      'targetPkgName':  context.abilityInfo.bundleName,
+      'bindType': 1,
+      'targetPkgName': context.abilityInfo.bundleName,
       'appName': context.abilityInfo.applicationInfo.name,
     }
 
     try {
-      this.myDeviceManager.bindTarget(device.deviceId, bindParam, (err) => {
+      this.myDeviceManager.bindTarget(device.deviceId, bindParam, (err: BusinessError) => {
         if (err) {
           Log.error('Device Manager',
             `authenticateDevice error code=${err.code}, msg=${JSON.stringify(err.message)}`);
