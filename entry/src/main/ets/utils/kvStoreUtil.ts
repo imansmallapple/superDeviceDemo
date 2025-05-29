@@ -77,7 +77,7 @@ class KvStoreModel {
 
       if (deviceId) {
         try {
-          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PUSH_ONLY)
+          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PUSH_PULL)
           Log.info('KvStoreModel', `sync to ${deviceId} success`)
         } catch (err) {
           Log.error('KvStoreModel', `sync to ${deviceId} failed: ${JSON.stringify(err)},${err}`)

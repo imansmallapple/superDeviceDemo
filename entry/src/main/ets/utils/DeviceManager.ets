@@ -14,6 +14,7 @@ class DeviceManager {
   private discoverList: deviceManager.DeviceBasicInfo[] = []
   private isDiscovering: boolean = false
   private boundDeviceList: string[] = []
+  private isPaired: boolean = false
 
   static getInstance(): DeviceManager {
     if (!DeviceManager.instance) {
@@ -48,16 +49,23 @@ class DeviceManager {
     }
     try {
       this.myDeviceManager.on('deviceStateChange', (data) => {
+        if (!AppStorage.get('isSender')) {
+          AppStorage.setOrCreate('isReceiver', true)
+        }
         if (!data) return;
-
         switch (data.action) {
           case deviceManager.DeviceStateChange.AVAILABLE:
             const remoteDevice = data.device
+            this.isPaired = true
             AppStorage.setOrCreate('RemoteConnectDeviceId', remoteDevice.deviceId)
+            AppStorage.setOrCreate('isPaired', this.isPaired)
             Log.info('deviceStateChange', 'Paired by device: ' + remoteDevice.deviceName)
             this.deviceOnline(data.device);
             break;
           case deviceManager.DeviceStateChange.UNAVAILABLE:
+            this.isPaired = false
+            AppStorage.setOrCreate('RemoteConnectDeviceId', '')
+            AppStorage.setOrCreate('isPaired', this.isPaired)
             this.deviceOffline(data.device);
             break;
         }
@@ -181,6 +189,7 @@ class DeviceManager {
     }
 
     try {
+      AppStorage.setOrCreate('isSender', true)
       this.myDeviceManager.bindTarget(device.deviceId, bindParam, (err: BusinessError) => {
         if (err) {
           Log.error('Device Manager',
@@ -203,12 +212,14 @@ class DeviceManager {
       Log.error('RemoteDeviceModel', 'unbindDevice deviceManager has not initialized');
       return;
     }
-    try {
-      this.myDeviceManager.unbindTarget(deviceId)
-      Log.info(`Device unbound: ${deviceId}`)
-    } catch (e) {
-      Log.error(`Failed to unbind: ${JSON.stringify(e)}`)
-    }
+    setTimeout(() => {
+      try {
+        this.myDeviceManager?.unbindTarget(deviceId)
+        Log.info('RemoteDeviceModel', `Device unbind: ${deviceId}`)
+      } catch (e) {
+        Log.error('RemoteDeviceModel', `Failed to unbind: ${JSON.stringify(e)}`)
+      }
+    }, 0)
   }
 
   getBoundDeviceList(): string[] {

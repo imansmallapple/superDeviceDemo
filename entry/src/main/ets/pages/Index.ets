@@ -13,13 +13,15 @@ let storage = LocalStorage.getShared();
 struct Index {
   @StorageLink('deviceList') deviceList: deviceManager.DeviceBasicInfo[] = []
   @StorageLink('RemoteConnectDeviceId') remoteConnectDeviceId: string = ''
+  @StorageLink('isSender') isSender: boolean = false
+  @StorageLink('isReceiver') isReceiver: boolean = false
+  @StorageLink('isPaired') isPaired: boolean = false
   @LocalStorageProp('shared_data') shared_data: string[] = []
   @State connectedDeviceId: string = ''
   @State textInput: string = ''
   @State receivedText: string[] = []
   @State isLoading: boolean = false
   @State isAbleUnbind: boolean = false
-  @State isPaired: boolean = false
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
   private kvStoreModel: KvStoreModel = new KvStoreModel();
 
@@ -32,10 +34,6 @@ struct Index {
         }
       })
     })
-    // this.checkAbleUnbind()
-    if (this.connectedDeviceId == '') {
-      this.isPaired = false
-    }
   }
 
   aboutToDisappear(): void {
@@ -100,6 +98,9 @@ struct Index {
       .justifyContent(FlexAlign.Center)
 
       Row() {
+        Text(`${this.isSender ? 'Sender' : 'Receiver'}`)
+          .alignSelf(ItemAlign.Start)
+
         Text(`Paired: ${this.isPaired}`)
           .alignSelf(ItemAlign.End)
       }
@@ -114,15 +115,15 @@ struct Index {
       if (this.connectedDeviceId !== '') {
         Button('Unbind')
           .onClick(() => {
-            DeviceManager.unbindDevice(this.connectedDeviceId)
-            this.connectedDeviceId = ''
-            this.isPaired = false
-            // this.checkAbleUnbind()
-            promptAction.showToast({ message: 'Unbind succeed!' })
+            promptAction.showToast({ message: 'Unbind...' })
+            setTimeout(() => {
+              DeviceManager.unbindDevice(this.connectedDeviceId)
+              this.connectedDeviceId = ''
+              this.remoteConnectDeviceId = ''
+            }, 100)
           })
       }
-      Text('Connected device id: ' + this.connectedDeviceId)
-      Text('Connected device from sender(For receiver device): ' + this.remoteConnectDeviceId)
+      Text('Connected device id: ' + this.remoteConnectDeviceId == '' ? this.connectedDeviceId : this.remoteConnectDeviceId)
 
       TextInput({ text: this.textInput, placeholder: 'Input your word..' })
         .onChange((value: string) => {
