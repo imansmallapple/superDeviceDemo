@@ -4,8 +4,6 @@ import common from '@ohos.app.ability.common'
 import Want from '@ohos.app.ability.Want'
 import { BusinessError } from '@ohos.base'
 
-// todo: Check if current device is sender or receiver
-
 class DeviceManager {
   private static instance: DeviceManager | undefined = undefined
   private myDeviceManager?: deviceManager.DeviceManager
@@ -256,6 +254,12 @@ class DeviceManager {
       this.isDiscovering = false;
     } catch (err) {
       Log.error('DeviceManager', `stopDeviceDiscovery failed: ${JSON.stringify(err)}`);
+    }
+  }
+
+  clearDeviceList(): void {
+    if (this.deviceList.length !== 0) {
+      this.deviceList = []
     }
   }
 

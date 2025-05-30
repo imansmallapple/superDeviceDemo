@@ -77,7 +77,7 @@ class KvStoreModel {
 
       if (deviceId) {
         try {
-          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PUSH_PULL)
+          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PULL_ONLY)
           Log.info('KvStoreModel', `sync to ${deviceId} success`)
         } catch (err) {
           Log.error('KvStoreModel', `sync to ${deviceId} failed: ${JSON.stringify(err)},${err}`)
@@ -107,6 +107,7 @@ class KvStoreModel {
           if ((data.updateEntries.length > 0) || (data.insertEntries.length > 0)) {
             callback(data);
           }
+          Log.info('kvStore','inside dataChange, data: ',data)
         });
     } catch (error) {
       Log.error('KvStoreModel',

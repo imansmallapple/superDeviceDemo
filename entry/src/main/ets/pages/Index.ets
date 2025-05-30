@@ -5,6 +5,7 @@ import Log from '../utils/Log';
 import common from '@ohos.app.ability.common';
 import KvStoreModel from '../utils/kvStoreUtil';
 import promptAction from '@ohos.promptAction';
+import distributedKVStore from '@ohos.data.distributedKVStore';
 
 let storage = LocalStorage.getShared();
 
@@ -16,7 +17,7 @@ struct Index {
   @StorageLink('isSender') isSender: boolean = false
   @StorageLink('isReceiver') isReceiver: boolean = false
   @StorageLink('isPaired') isPaired: boolean = false
-  @LocalStorageProp('shared_data') shared_data: string[] = []
+  @LocalStorageProp('messageList') messageList: string[] = [];
   @State connectedDeviceId: string = ''
   @State textInput: string = ''
   @State receivedText: string[] = []
@@ -24,15 +25,46 @@ struct Index {
   @State isAbleUnbind: boolean = false
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
   private kvStoreModel: KvStoreModel = new KvStoreModel();
+  @State receivedList: string[] = []
 
   aboutToAppear() {
-    this.kvStoreModel.createKvStore(this.context, (data) => {
-      data.insertEntries.forEach((entry) => {
-        if (entry.key === 'shared_text') {
-          this.receivedText = JSON.parse((entry.value.value) as string) as string[]
-          Log.info('Received text: ' + this.receivedText)
-        }
-      })
+    // this.kvStoreModel.createKvStore(this.context, (data) => {
+    //   Log.info('KvStore', 'KvStore onDataChange triggered')
+    //   data.insertEntries.forEach((entry) => {
+    //     Log.info('KvStore', `Key: ${entry.key}, Value: ${JSON.stringify(entry.value)}`)
+    //     if (entry.key === 'shared_text') {
+    //       try {
+    //         let newData = JSON.parse((entry.value.value) as string) as string[]
+    //         this.receivedText = [...newData]
+    //         Log.info('KvStore', 'Updated receivedText: ' + this.receivedText)
+    //       } catch (e) {
+    //         Log.error('KvStore', 'Failed to parse shared_text: ' + JSON.stringify(e))
+    //       }
+    //     }
+    //   })
+    // })
+    this.createKVStore()
+    DeviceManager.clearDeviceList()
+  }
+
+  createKVStore(): void {
+    this.kvStoreModel.createKvStore(this.context, (data: distributedKVStore.ChangeNotification) => {
+      this.messageList = []
+      if (data.insertEntries.length > 0) {
+        data.updateEntries.forEach((entry) => {
+          Log.info('kvStore','inside insert', entry.key, entry.value.type, entry.value.value)
+          this.receivedList.push((entry.value.value) as string)
+          Log.info('kvStore', this.receivedList)
+        })
+      }
+      if (data.updateEntries.length > 0) {
+        data.updateEntries.forEach((entry) => {
+          Log.info('kvStore','inside update', entry.key, entry.value.type, entry.value.value)
+          this.receivedList.push((entry.value.value) as string)
+          Log.info('kvStore', this.receivedList)
+        })
+      }
+      // this.receivedList.push(data.insertEntries.length > 0 ? (data.insertEntries) : data.updateEntries)
     })
   }
 
@@ -45,7 +77,7 @@ struct Index {
       startAbility: this.startAbility,
       deviceList: this.deviceList,
       cancel: this.onCancel,
-      param: this.shared_data,
+      param: this.messageList,
       connectedDeviceId: this.connectedDeviceId,
       isLoading: this.isLoading,
       isPaired: this.isPaired,
@@ -71,9 +103,11 @@ struct Index {
   pushData(data: string): void {
     Log.info('ConnectedDeviceId: ', this.connectedDeviceId)
     Log.info('ConnectedDeviceId data: ', data)
-    Log.info('ConnectedDeviceId shared_text: ', JSON.stringify(this.shared_data))
-    this.shared_data.push(data)
-    this.kvStoreModel.put('shared_text', JSON.stringify(this.shared_data), this.connectedDeviceId)
+    this.messageList.push(data)
+    this.kvStoreModel.put('sync messageList', JSON.stringify(this.messageList))
+    // Log.info('ConnectedDeviceId shared_text: ', JSON.stringify(this.shared_data))
+    // this.shared_data.push(data)
+    // this.kvStoreModel.put('shared_text', JSON.stringify(this.shared_data), this.connectedDeviceId)
   }
 
   startAbility(
@@ -143,11 +177,16 @@ struct Index {
           }
         })
 
-      Text('Received message:' + this.receivedText)
-
-      ForEach(this.receivedText, (item: string) => {
+      Text('Send message:')
+      ForEach(this.messageList, (item: string) => {
         Text(item)
       })
+
+      Text('receive message:')
+      ForEach(this.receivedList, (item: string) => {
+        Text(item)
+      })
+
     }
     .width('100%')
     .height('100%')

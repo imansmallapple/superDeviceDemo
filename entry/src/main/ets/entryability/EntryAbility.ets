@@ -24,9 +24,9 @@ export default class EntryAbility extends UIAbility {
   onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.want = want
 
-    if (this.want?.parameters?.textInput) {
-      let param: string = JSON.parse((this.want.parameters.param) as string)
-      this.storage.setOrCreate('shared_data', param)
+    if (this.want?.parameters?.messageList) {
+      let messageList: string[] = JSON.parse((this.want.parameters.messageList) as string)
+      this.storage.setOrCreate('messageList', messageList)
     }
   }
 
@@ -34,14 +34,14 @@ export default class EntryAbility extends UIAbility {
     // Main window is created, set main page for this ability
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
 
-    if (this?.want?.parameters?.textInput) {
-      let shared_data: string = JSON.parse((this.want.parameters.shared_data) as string)
-      this.storage.setOrCreate('shared_data', shared_data)
+    if (this?.want?.parameters?.messageList) {
+      let messageList: string[] = JSON.parse((this.want.parameters.shared_data) as string)
+      this.storage.setOrCreate('messageList', messageList)
     }
 
     checkPermissions(this.context)
 
-    windowStage.loadContent('pages/Index', (err) => {
+    windowStage.loadContent('pages/Index', this.storage, (err) => {
       if (err.code) {
         hilog.error(0x0000, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
         return;
