@@ -77,7 +77,7 @@ class KvStoreModel {
 
       if (deviceId) {
         try {
-          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PULL_ONLY)
+          this.kvStore!.sync([deviceId], distributedKVStore.SyncMode.PUSH_PULL)
           Log.info('KvStoreModel', `sync to ${deviceId} success`)
         } catch (err) {
           Log.error('KvStoreModel', `sync to ${deviceId} failed: ${JSON.stringify(err)},${err}`)
@@ -97,8 +97,8 @@ class KvStoreModel {
    */
   setDataChangeListener(callback: (data: distributedKVStore.ChangeNotification) => void): void {
     if (this.kvStore === undefined) {
-      Log.error('KvStoreModel', 'setDataChangeListener kvStore is null');
-      return;
+      Log.error('KvStoreModel', 'setDataChangeListener kvStore is null')
+      return
     }
 
     try {

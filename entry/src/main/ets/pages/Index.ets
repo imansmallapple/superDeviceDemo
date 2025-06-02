@@ -52,14 +52,14 @@ struct Index {
       this.messageList = []
       if (data.insertEntries.length > 0) {
         data.updateEntries.forEach((entry) => {
-          Log.info('kvStore','inside insert', entry.key, entry.value.type, entry.value.value)
+          Log.info('kvStore', 'inside insert', entry.key, entry.value.type, entry.value.value)
           this.receivedList.push((entry.value.value) as string)
           Log.info('kvStore', this.receivedList)
         })
       }
       if (data.updateEntries.length > 0) {
         data.updateEntries.forEach((entry) => {
-          Log.info('kvStore','inside update', entry.key, entry.value.type, entry.value.value)
+          Log.info('kvStore', 'inside update', entry.key, entry.value.type, entry.value.value)
           this.receivedList.push((entry.value.value) as string)
           Log.info('kvStore', this.receivedList)
         })
@@ -166,7 +166,7 @@ struct Index {
 
       Button('Send')
         .onClick(() => {
-          if (!this.connectedDeviceId || !this.textInput) {
+          if (!this.connectedDeviceId ? 0 : !this.remoteConnectDeviceId || !this.textInput) {
             Log.info('No device connected or text is empty!')
             return
           }
