@@ -69,4 +69,4 @@ Once paired, the initiating device will be labeled as `Sender`, and the other wi
 - Tap **Unbind** to disconnect the paired device and reset the session.
 
 ## Link
-If you want to check more detailed code explainations, architecture deep-dives and step-by-step implementation guides, please go through this [tutorial](../tutorial.md).
+If you want to check more detailed code explainations, architecture deep-dives and step-by-step implementation guides, please go through this [tutorial](./Tutorial.md).
